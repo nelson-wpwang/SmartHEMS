@@ -174,11 +174,21 @@ def prepare_data(data):
 		prepared_data.append(monthly_data)
 	return prepared_data
 
-state_data, dev_list = get_data()
-chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-X_data = prepare_data(chosen_data)
-for item in X_data[0]:
-	print(item)
 
+#for item in X_data[0]:
+#	print(item)
 
+#change X data frame from L*N*T to N*L*T
+def change_frame(data):
+	output_data = [[] for i in range(len(data[0]))]
+	for dev in data:
+		print(len(dev))
+		for i in range(len(dev)):
+			output_data[i].append(dev[i])
+			#for i in range(len(month)):
+			#	output_data[i].append(month[i])
+	return output_data
+
+#X = np.squeeze(X, axis = -1)
+#print(X)
             
