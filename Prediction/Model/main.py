@@ -10,5 +10,5 @@ X = change_frame(X_data)
 X = np.array(X)
 #print(X.shape)
 
-model = algo(1, [1,1,1,1,1,1,1], 1, 1, 50, X, True)
+model = algo(1, [1,1,1,1,1,1,1], 1, 1, 50, X, False)
 model.train()
