@@ -64,19 +64,21 @@ Algorithm
 '''
 
 class algo(object):
-    def __init__(self, alpha, gamma, beta1, beta2, K, X, verbose=False):
+    def __init__(self, alpha, gamma, beta1, beta2, K, X, Q, verbose=False):
         # Set hyperparamteres
         self.alpha = alpha
         self.gamma = np.array(gamma)
         self.beta1 = beta1
         self.beta2 = beta2
         self.X = X
-        assert isinstance(X, np.ndarray), 'X should be numpy matrix'
+        self.Q = Q
+        assert isinstance(X, np.ndarray) and isinstance(Q, np.ndarray), 'X, Q should be numpy matrix'
         assert len(X.shape) == 3, 'X should be a 3-dimension matrix'
+        assert len(Q.shape) == 2, 'Q should be a 2-dimension matrix'
         self.N = X.shape[0]
         self.K = K
         self.T = X.shape[-1]
-        self.W = 7
+        self.W = Q.shape[-1]
         self.L = X.shape[1]
         self.verbose = verbose
         self._initialize()
@@ -90,17 +92,12 @@ class algo(object):
         self.M = np.random.beta(self.beta1, self.beta2, size=(self.K, self.L, self.T))
         self.V = np.random.beta(1, self.alpha, size=self.K)
         self.theta = np.random.dirichlet(self.gamma, size=self.K)
-        self.Q = np.zeros((self.N, self.W))
         
 
         # Random initialize our matrices
         for day in range(self.X.shape[0]):
             z_n  = random.randint(0,self.K-1)
             self.Z[day, z_n] += 1
-
-        for day in range(self.N):
-            k = np.nonzero(self.Z[day, :])[0]
-            self.Q[day, :] = np.random.multinomial(1, self.theta[k].squeeze(axis=0))
 
     def train(self, iters=60):
         if self.verbose:
