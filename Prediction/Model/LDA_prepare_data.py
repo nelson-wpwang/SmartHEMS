@@ -131,12 +131,14 @@ def prepare_data(data):
 	daily_data = list()
 	dev_data = list()
 	prepared_data = list()
-	day_info = list()
+	
 	#monthly_day_info = list()
-	accumulated_states = 0
-	base_day = None
-	base_hour = None
+	
 	for device in data:
+		day_info = list()
+		accumulated_states = 0
+		base_day = None
+		base_hour = None
 		for month_year in device:
 			for item in month_year:
 				time, state, months, weeks, days = item
@@ -196,11 +198,12 @@ def prepare_data(data):
 		day_week_lst.append(tmp_lst)
 	return prepared_data, day_week_lst
 
-#state_data, dev_list = get_data()
-#chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-#X_data, Q_data = prepare_data(chosen_data)
-#print(X_data)
-#print(np.array(Q_data).shape)
+state_data, dev_list = get_data()
+chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
+X_data, Q_data = prepare_data(chosen_data)
+print(X_data)
+print(np.array(X_data).shape)
+print(np.array(Q_data).shape)
 
 
 
