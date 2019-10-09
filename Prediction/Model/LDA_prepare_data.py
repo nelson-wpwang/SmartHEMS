@@ -129,8 +129,10 @@ def get_selected_data(start_time, end_time, data):
 
 def prepare_data(data):
 	daily_data = list()
-	monthly_data = list()
+	dev_data = list()
 	prepared_data = list()
+	day_info = list()
+	#monthly_day_info = list()
 	accumulated_states = 0
 	base_day = None
 	base_hour = None
@@ -138,9 +140,11 @@ def prepare_data(data):
 		for month_year in device:
 			for item in month_year:
 				time, state, months, weeks, days = item
+
 				if base_day == None:
 					base_day = time
 					base_hour = time
+					base_day_days = days
 
 				if time >= base_day and time < base_day + datetime.timedelta(days = 1):
 					if time >= base_hour and time < base_hour + datetime.timedelta(minutes = time_interval):
@@ -154,35 +158,46 @@ def prepare_data(data):
 						continue
 
 				else:
+					#print(days)
 					daily_data.append(accumulated_states)
-					monthly_data.append(daily_data)
+					dev_data.append(daily_data)
+					day_info.append(base_day_days)
 					daily_data = list()
 					base_day = time
 					base_hour = time
+					base_day_days = days
 					accumulated_states = state
 					continue
 
 			daily_data.append(accumulated_states)
-			monthly_data.append(daily_data)
+			dev_data.append(daily_data)
+			day_info.append(base_day_days)
 			daily_data = list()
 			base_day = time
 			base_hour = time
+			base_day_days = days
 			accumulated_states = state
 			continue
 
 		#monthly_data.append(daily_data)
-		prepared_data.append(monthly_data)
-	return prepared_data
+		prepared_data.append(dev_data)
+		dev_data = list()
+		#monthly_day_info.append(day_info)
+		#day_info = list()
+	return prepared_data, day_info
 
+#state_data, dev_list = get_data()
+#chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
+#X_data, Q_data = prepare_data(chosen_data)
+#print(X_data)
+#print(Q_data)
 
-#for item in X_data[0]:
-#	print(item)
 
 #change X data frame from L*N*T to N*L*T
 def change_frame(data):
 	output_data = [[] for i in range(len(data[0]))]
 	for dev in data:
-		print(len(dev))
+		#print(len(dev))
 		for i in range(len(dev)):
 			output_data[i].append(dev[i])
 			#for i in range(len(month)):
