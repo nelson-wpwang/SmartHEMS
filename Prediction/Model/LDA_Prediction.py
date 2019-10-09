@@ -45,16 +45,16 @@ def P_Pi_star(Z, n, Pi, M, Q, X, theta):
         #Calculate condp_qn_theta
         for day in range(Z.shape[0]):
             multinom = scipy.stats.multinomial(1, theta[k])
-            condp_qn_theta_K[k] *= multinom.pmf(Q[day,:])
+            if Z[day, k] == 1:
+                condp_qn_theta_K[k] *= multinom.pmf(Q[day,:])
         #Calculate condp_xn_muk
-        condp_xn_muk = np.prod(np.power(M[k, :, :], X[n, :, :]) * np.power(1 - M[k, :, :], 1 - X[n, :, :])) #scalar
-
+        condp_xn_mu_K[k] = np.prod(np.power(M[k, :, :], X[n, :, :]) * np.power(1 - M[k, :, :], 1 - X[n, :, :])) #scalar
+    # print(condp_xn_mu_K)
     denom = np.sum(np.prod(np.prod(np.power(M[:, :, :], X[n, :, :]) * np.power(1 - M[:, :, :], 1 - X[n, :, :]), axis=-1), axis=-1) * Pi * condp_qn_theta_K)
-
     for k in range(Z.shape[1]):
         numer = Pi[k] * condp_xn_mu_K[k] * condp_qn_theta_K[k] #scalar
         Pi_star[k] = numer / denom
-    
+    # print(Pi_star)
     return Pi_star
 
 
@@ -110,7 +110,7 @@ class algo(object):
             """
             print('We are in the [%d] iteration'%iter)
             for day in range(self.X.shape[0]):
-                print("Iter in day %d"%day)
+                #print("Iter in day %d"%day)
                 #Calculate v_k for all day types
                 for k in range(self.K):
                     self.V[k] = P_v_k(self.alpha, self.Z, k)
@@ -121,14 +121,16 @@ class algo(object):
                             self.M[k, l, t] = P_mu_klt(self.beta1, self.beta2, self.Z, k, l, t, self.X)
 
                     #Calculate theta_kw for all day types and week of day
-                    for w in range(self.W):
-                        self.theta[k, :] = P_theta_kw(self.gamma, self.Q, self.Z, k)
+                    # for w in range(self.W):
+                    self.theta[k, :] = P_theta_kw(self.gamma, self.Q, self.Z, k)
+            #print(self.theta)
             print("Finish updating V, M, theta")
 
             """
             Updating Z
             """
             Pi = get_pi(self.V, self.K)
+            # print(Pi)
             Pi_star = np.zeros_like(Pi)
             for day in range(self.X.shape[0]):
                 Pi_star = P_Pi_star(self.Z, day, Pi, self.M, self.Q, self.X, self.theta)
@@ -141,7 +143,7 @@ class algo(object):
             """
             p_likelihood = 0
             for n in range(self.Z.shape[0]):
-                p_likelihood += np.log(np.prod(np.power((np.power(self.M, self.X[n, :, :]) * np.power(1 - self.M, 1 - self.X[n, :, :])), np.expand_dims(self.Z[n, :], axis=-1))))
+                p_likelihood += np.log(np.prod(np.power(np.power(self.M, self.X[n, :, :]) * np.power(1 - self.M, 1 - self.X[n, :, :]), np.expand_dims(np.expand_dims(self.Z[n, :], axis=-1), axis=-1))))
             print('Log likelihood is %.4f'%(-p_likelihood/self.Z.shape[0]))
 
             if self.verbose:

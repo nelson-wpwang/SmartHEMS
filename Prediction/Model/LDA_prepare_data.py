@@ -184,13 +184,24 @@ def prepare_data(data):
 		dev_data = list()
 		#monthly_day_info.append(day_info)
 		#day_info = list()
-	return prepared_data, day_info
+
+	day_week_lst = list()
+	for day in day_info:
+		tmp_lst = list()
+		for i in range(7):
+			if i == day:
+				tmp_lst.append(1)
+			else:
+				tmp_lst.append(0)
+		day_week_lst.append(tmp_lst)
+	return prepared_data, day_week_lst
 
 #state_data, dev_list = get_data()
 #chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
 #X_data, Q_data = prepare_data(chosen_data)
 #print(X_data)
-#print(Q_data)
+#print(np.array(Q_data).shape)
+
 
 
 #change X data frame from L*N*T to N*L*T
