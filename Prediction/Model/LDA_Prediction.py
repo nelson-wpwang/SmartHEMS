@@ -43,10 +43,8 @@ def P_Pi_star(Z, n, Pi, M, Q, X, theta):
 
     for k in range(Z.shape[1]):
         #Calculate condp_qn_theta
-        for day in range(Z.shape[0]):
-            multinom = scipy.stats.multinomial(1, theta[k])
-            if Z[day, k] == 1:
-                condp_qn_theta_K[k] *= multinom.pmf(Q[day,:])
+        multinom = scipy.stats.multinomial(1, theta[k])
+        condp_qn_theta_K[k] = multinom.pmf(Q[n,:])
         #Calculate condp_xn_muk
         condp_xn_mu_K[k] = np.prod(np.power(M[k, :, :], X[n, :, :]) * np.power(1 - M[k, :, :], 1 - X[n, :, :])) #scalar
     # print(condp_xn_mu_K)
