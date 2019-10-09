@@ -109,20 +109,18 @@ class algo(object):
             Updating V, M, theta
             """
             print('We are in the [%d] iteration'%iter)
-            for day in range(self.X.shape[0]):
-                #print("Iter in day %d"%day)
+            for k in range(self.K):
                 #Calculate v_k for all day types
-                for k in range(self.K):
-                    self.V[k] = P_v_k(self.alpha, self.Z, k)
+                self.V[k] = P_v_k(self.alpha, self.Z, k)
+                #print("Iter in day %d"%day)
+                #Calculate mu_klt for all day types, appliances and time
+                for l in range(self.L):
+                    for t in range(self.T):
+                        self.M[k, l, t] = P_mu_klt(self.beta1, self.beta2, self.Z, k, l, t, self.X)
 
-                    #Calculate mu_klt for all day types, appliances and time
-                    for l in range(self.L):
-                        for t in range(self.T):
-                            self.M[k, l, t] = P_mu_klt(self.beta1, self.beta2, self.Z, k, l, t, self.X)
-
-                    #Calculate theta_kw for all day types and week of day
-                    # for w in range(self.W):
-                    self.theta[k, :] = P_theta_kw(self.gamma, self.Q, self.Z, k)
+                #Calculate theta_kw for all day types and week of day
+                # for w in range(self.W):
+                self.theta[k, :] = P_theta_kw(self.gamma, self.Q, self.Z, k)
             #print(self.theta)
             print("Finish updating V, M, theta")
 
