@@ -198,14 +198,6 @@ def prepare_data(data):
 		day_week_lst.append(tmp_lst)
 	return prepared_data, day_week_lst
 
-state_data, dev_list = get_data()
-chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-X_data, Q_data = prepare_data(chosen_data)
-print(X_data)
-print(np.array(X_data).shape)
-print(np.array(Q_data).shape)
-
-
 
 #change X data frame from L*N*T to N*L*T
 def change_frame(data):
@@ -218,6 +210,14 @@ def change_frame(data):
 			#	output_data[i].append(month[i])
 	return output_data
 
+
+# state_data, dev_list = get_data()
+# chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
+# X_data, Q_data = prepare_data(chosen_data)
+# X = change_frame(X_data)
+# print(X)
+# print(np.array(X).shape)
+# print(np.array(Q_data).shape)
 #X = np.squeeze(X, axis = -1)
 #print(X)
             

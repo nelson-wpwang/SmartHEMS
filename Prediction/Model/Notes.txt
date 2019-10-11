@@ -1,0 +1,5 @@
+Goal for paper for IOTDI:
+1. having some baseline for comparison and show that by adding correlations we can get better results.
+
+Idea for new paper:
+

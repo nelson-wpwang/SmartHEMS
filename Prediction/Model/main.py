@@ -9,7 +9,9 @@ X = change_frame(X_data)
 
 X = np.array(X)
 Q = np.array(Q)
-#print(X.shape)
+# for item in X:
+# 	print(item)
 
-model = algo(1, [1,1,1,1,1,1,1], 1, 1, 50, X, Q, False)
-model.train()
+model = algo(1, [1,1,1,1,1,1,1], 1, 1, 20, X, Q, False)
+model.train(3000)
+# model.infer()
