@@ -6,6 +6,11 @@ from scipy.stats import dirichlet
 from scipy.stats import multinomial
 from tqdm import tqdm
 import random
+        
+'''
+save logs
+'''
+f = open('LDA_log', 'w')
 
 '''
 Utility Functions
@@ -26,6 +31,12 @@ def P_v_k(alpha, Z, k):
     hyper2_k = alpha + np.sum(np.sum(Z, axis=0)[k+1:])
     v_k = np.random.beta(hyper1_k, hyper2_k)
     return v_k
+
+def P_Pi(alpha, Z):
+    hyper = alpha + np.sum(Z, axis=0)
+    Pi = np.random.dirichlet(hyper)
+    return Pi
+
 
 def P_mu_klt(beta1, beta2, Z, k, l, t, X):
     hyper1_klt = beta1 + np.sum(X[:, l, t] * Z[:, k])
@@ -105,14 +116,15 @@ class algo(object):
             t = tqdm(range(iters), desc='Gibbs Sampling:')
         else:
             t = range(iters)
+        
         for iter in t:
             """
             Updating V, M, theta
             """
-            print('We are in the [%d] iteration'%iter)
+            #print('We are in the [%d] iteration'%iter)
             for k in range(self.K):
                 #Calculate v_k for all day types
-                self.V[k] = P_v_k(self.alpha, self.Z, k)
+                # self.V[k] = P_v_k(self.alpha, self.Z, k)
                 #print("Iter in day %d"%day)
                 #Calculate mu_klt for all day types, appliances and time
                 for l in range(self.L):
@@ -122,27 +134,37 @@ class algo(object):
                 #Calculate theta_kw for all day types and week of day
                 # for w in range(self.W):
                 self.theta[k, :] = P_theta_kw(self.gamma, self.Q, self.Z, k)
+            Pi = P_Pi(self.alpha, self.Z)
             #print(self.theta)
-            print("Finish updating V, M, theta")
+            # print("Finish updating V, M, theta")
             # for k in range(self.M.shape[0]):
             #     for l in range(self.M.shape[1]):
             #         print(self.M[k, l, :])
-
+            # print('V value is: ', self.V)
             """
             Updating Z
             """
-            Pi = get_pi(self.V, self.K)
-            # print(Pi)
+            # Pi = get_pi(self.V, self.K)
+            # print('Pi value is: ', Pi
+            if iter > 0 and iter%1000 == 0:
+                f.write('-----------------------------------------------\n')
+                f.write('We are in [%d] iters\n'%iter)
+
+            avg_likelihood = 0
             Pi_star = np.zeros_like(Pi)
             for day in range(self.X.shape[0]):
                 Pi_star = P_Pi_star(day, Pi, self.M, self.Q, self.X, self.theta)
                 self.Z[day, :] = np.random.multinomial(1, Pi_star)
-                # print(Pi_star)
+                # print('Pi_star value is: ', Pi_star)
                 likelihood_n = np.log(np.prod(np.power(np.power(self.M, self.X[day, :, :]) * np.power(1 - self.M, 1 - self.X[day, :, :]), np.expand_dims(np.expand_dims(self.Z[day, :], axis=-1), axis=-1))))
-                if iter%100 == 0:
-                    print('We assign [%d] day type to day %d with probability %.4f and its log-likelihood is %.4f.'%(np.where(self.Z[day, :]==1)[0], day, Pi_star[np.where(self.Z[day, :])], likelihood_n))
-
-            
+                if iter > 0 and iter%1000 == 0:
+                    # print(Pi_star)
+                    f.write('We assign [%d] day type to day %d with probability %.4f and its log-likelihood is %.4f.\n'%(np.where(self.Z[day, :]==1)[0], day, Pi_star[np.where(self.Z[day, :])], likelihood_n))
+                avg_likelihood += likelihood_n
+            if iter > 0 and iter%1000 == 0:    
+                f.write('The average likelihood is: %.4f.\n'%(avg_likelihood/31))
+                f.write('-----------------------------------------------\n')
+                f.write('\n')
             """
             Print likelihood
             """
@@ -152,17 +174,20 @@ class algo(object):
             # p_likelihood += np.log(np.prod(np.power(np.power(self.M, self.X[n, :, :]) * np.power(1 - self.M, 1 - self.X[n, :, :]), np.expand_dims(np.expand_dims(self.Z[n, :], axis=-1), axis=-1))))
             # print('Log likelihood is %.4f'%(-p_likelihood/self.Z.shape[0]))
 
-            if self.verbose:
-                t.set_postfix(NegLikelihood=p_likelihood)
+            # if self.verbose:
+            #     t.set_postfix(NegLikelihood=p_likelihood)
 
 
-    def infer(self, n=0):
+    def infer(self, n):
         w = None
         w_truth = np.where(self.Q[n, :] == 1)[0]
 
         # Break when we get the right day type
-        Pi = get_pi(self.V, self.K)
-        print(Pi)
+        Pi = P_Pi(self.alpha, self.Z)
+        # print(Pi)
+        Pi_str = np.array2string(Pi)
+        f.write(Pi_str)
+        f.write('\n')
         while w != w_truth:
             self.Z[n, :] = np.random.multinomial(1, Pi)
             z_n = np.where(self.Z[n, :] == 1)[0]
@@ -172,8 +197,10 @@ class algo(object):
 
         # Get day type pattern
         pattern_n = self.M[z_n, 0, :]
-        print('Our inferred pattern is {}'.format(pattern_n) )
-        print('Real usage is {}'.format(self.X[n, :]) )
+        # print('Our inferred pattern is {}'.format(pattern_n))
+        # print('Real usage is {}'.format(self.X[n, :]))
+        f.write('Our inferred pattern is {}\n'.format(pattern_n))
+        f.write('Real usage is {}\n'.format(self.X[n, :]))
 
 
 
