@@ -205,7 +205,8 @@ class algo(object):
 
 
 
-
+    def finish_writing(self):
+        f.close()
 
 
 

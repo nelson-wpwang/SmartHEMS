@@ -22,5 +22,7 @@ model.train(500001)
 for i in range(X.shape[0]):
 	model.infer(i)
 
+model.finish_writing()
+
 filename = 'LDA_model.sav'
 joblib.dump(model, filename)
