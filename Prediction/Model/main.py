@@ -4,25 +4,31 @@ from sklearn.externals import joblib
 
 
 state_data, dev_list = get_data()
-chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-X_data, Q = prepare_data(chosen_data)
-X = change_frame(X_data)
+chosen_data, Q = get_selected_data(chosen_start_date, chosen_end_date, state_data)
+# X_data, Q = prepare_data(chosen_data)
+X = change_frame(chosen_data)
 
 X = np.array(X)
 Q = np.array(Q)
+
+print(X.shape)
+print(Q.shape)
+
+
+
 # for item in X:
 # 	print(item)
 # for i in range(Q.shape[0]):
 # 	if np.argmax(Q[i, :]) == 0:
 # 		print(X[i, :])
 
-model = algo(0.5, [1,1,1,1,1,1,1], 1, 5, 10, X, Q, True)
-model.train(500001)
+# model = algo(0.5, [2,2,2,2,2,2,2], 2, 5, 10, X, Q, True)
+# model.train(25001)
 
-for i in range(X.shape[0]):
-	model.infer(i)
+# for i in range(X.shape[0]):
+	# model.infer(i)
 
-model.finish_writing()
+# model.finish_writing()
 
-filename = 'LDA_model.sav'
-joblib.dump(model, filename)
+# filename = 'LDA_model.sav'
+# joblib.dump(model, filename)

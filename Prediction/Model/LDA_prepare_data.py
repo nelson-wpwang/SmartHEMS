@@ -17,10 +17,17 @@ from sklearn.metrics import confusion_matrix
 from sklearn.utils import check_random_state
 
 #Set the threshold to mark the active status
-power_threshold = 30
+threshold_microwave = 4
+threshold_kitchenapp = 3
+threshold_oven = 0
+threshold_clotheswasher = 50
+threshold_dishwasher = 0
+threshold_lightsplug = 77
 time_interval = 60 #min of time interval
-chosen_start_date = '2016-10-01'
-chosen_end_date = '2016-10-31'
+chosen_start_date = '2013-07-05'
+chosen_end_date = '2014-01-04'
+
+f = open('prepare_data_log', 'w')
 
 def week_of_month(dt):
     #This will add the first day of the month weekday & present day of month
@@ -29,8 +36,9 @@ def week_of_month(dt):
     #print day_of_month
     adj_day_of_month = day_of_month + first_day.weekday()
     return int(ceil(adj_day_of_month/7.0))
+    
 
-def get_data(name = None, path = '/Users/nelson/Academia/Research/Work/SmartHEMS/Prediction/Data Source'):
+def get_data(name = None, path = '/Users/nelson/Academia/Research/Work/SmartHEMS/Prediction/Data Source/Dataport 1464'):
     if not os.path.exists(path):
         raise('Directory not exists')
 
@@ -46,19 +54,32 @@ def get_data(name = None, path = '/Users/nelson/Academia/Research/Work/SmartHEMS
             continue
          
         read_data = list()
-
+        
+        if file == 'microwave1.csv':
+        	power_threshold = threshold_microwave
+        if file == "oven1.csv":
+        	power_threshold = threshold_oven
+        if file == 'kitchenapp1.csv':
+        	power_threshold = threshold_kitchenapp
+        if file == 'lights_plugs1.csv':
+        	power_threshold = threshold_lightsplug
+        if file == 'clotheswasher1.csv':
+        	power_threshold = threshold_clotheswasher
+        if file == 'dishwasher1.csv':
+        	power_threshold = threshold_dishwasher
+        
         prev_time = None
         prev_gt = None
         
         datareader = pd.read_csv(file_path)
         datas = datareader.values.tolist()
-        for row in tqdm(datas, desc = "Reading power data"):
+        for row in tqdm(datas, desc = "Reading power data from %s"%file):
             dataid, time, power = row
             time = time[:-3]
             dttime = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
             
             power = round(power*1000, 2)
-            
+
             if power > power_threshold:
                 gt = 1
             else:
@@ -73,6 +94,8 @@ def get_data(name = None, path = '/Users/nelson/Academia/Research/Work/SmartHEMS
 
             if dttime - datetime.timedelta(minutes = 1) != prev_time:
                 time_diff = round(datetime.timedelta.total_seconds(dttime - prev_time)/60)
+                if time_diff <= 0:
+                	continue
                 for i in range(1, time_diff):
                     miss_time = prev_time + datetime.timedelta(minutes = i)
                     days = datetime.datetime.weekday(miss_time)
@@ -88,10 +111,11 @@ def get_data(name = None, path = '/Users/nelson/Academia/Research/Work/SmartHEMS
             months = dttime.month
             
             read_data.append([dttime, gt, months, weeks, days])
-        
+        print(len(read_data))
         all_data.append(read_data)
         
     return all_data, file_list
+
 
 def get_selected_data(start_time, end_time, data):
 	starttime = datetime.datetime.strptime(start_time, '%Y-%m-%d')
@@ -100,49 +124,18 @@ def get_selected_data(start_time, end_time, data):
 	starttime = datetime.datetime(starttime.year, starttime.month, starttime.day, 0, 0)
 	endtime = datetime.datetime(endtime.year, endtime.month, endtime.day, 23, 59)
 	selected_data = list()
-
-	for device in data:
-		this_month = None
-		#month_list = list()
-		this_month_data = list()
-		monthly_data = list()
-		for items in device:
-			time, state, months, weeks, days = items
-			if time <= endtime and time >= starttime:
-				if this_month == None:
-					this_month = months
-
-				if months == this_month:
-					this_month_data.append(items)
-				else:
-					monthly_data.append(this_month_data)
-					#month_list.append(this_month)
-					this_month_data = list()
-					this_month_data.append(items)
-					this_month = months
-			else:
-				continue
-		monthly_data.append(this_month_data)
-		selected_data.append(monthly_data)
-
-	return selected_data
-
-def prepare_data(data):
-	daily_data = list()
-	dev_data = list()
-	prepared_data = list()
-	
-	#monthly_day_info = list()
 	
 	for device in data:
+		dev_data = list()
 		day_info = list()
+		daily_data = list()
 		accumulated_states = 0
 		base_day = None
 		base_hour = None
-		for month_year in device:
-			for item in month_year:
-				time, state, months, weeks, days = item
-
+		count = 0
+		for items in device:
+			time, state, months, weeks, days = items
+			if time <= endtime and time >= starttime:
 				if base_day == None:
 					base_day = time
 					base_hour = time
@@ -171,23 +164,11 @@ def prepare_data(data):
 					accumulated_states = state
 					continue
 
-			daily_data.append(accumulated_states)
-			dev_data.append(daily_data)
-			day_info.append(base_day_days)
-			daily_data = list()
-			base_day = time
-			base_hour = time
-			base_day_days = days
-			accumulated_states = state
-			continue
+			else:
+				continue
+		selected_data.append(dev_data)
 
-		#monthly_data.append(daily_data)
-		prepared_data.append(dev_data)
-		dev_data = list()
-		#monthly_day_info.append(day_info)
-		#day_info = list()
-
-	day_week_lst = list()
+		day_week_lst = list()
 	for day in day_info:
 		tmp_lst = list()
 		for i in range(7):
@@ -196,28 +177,18 @@ def prepare_data(data):
 			else:
 				tmp_lst.append(0)
 		day_week_lst.append(tmp_lst)
-	return prepared_data, day_week_lst
+
+	return selected_data, day_week_lst
 
 
 #change X data frame from L*N*T to N*L*T
 def change_frame(data):
 	output_data = [[] for i in range(len(data[0]))]
 	for dev in data:
-		#print(len(dev))
+		# print(dev)
 		for i in range(len(dev)):
 			output_data[i].append(dev[i])
 			#for i in range(len(month)):
 			#	output_data[i].append(month[i])
 	return output_data
 
-
-# state_data, dev_list = get_data()
-# chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-# X_data, Q_data = prepare_data(chosen_data)
-# X = change_frame(X_data)
-# print(X)
-# print(np.array(X).shape)
-# print(np.array(Q_data).shape)
-#X = np.squeeze(X, axis = -1)
-#print(X)
-            
