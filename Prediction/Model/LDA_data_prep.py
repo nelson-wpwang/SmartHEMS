@@ -18,7 +18,7 @@ from sklearn.utils import check_random_state
 
 #Set the threshold to mark the active status
 power_threshold = 30
-time_interval = 60 #min of time interval
+time_interval = 30 #min of time interval
 chosen_start_date = '2016-10-01'
 chosen_end_date = '2016-10-31'
 
@@ -209,15 +209,3 @@ def change_frame(data):
 			#for i in range(len(month)):
 			#	output_data[i].append(month[i])
 	return output_data
-
-
-# state_data, dev_list = get_data()
-# chosen_data = get_selected_data(chosen_start_date, chosen_end_date, state_data)
-# X_data, Q_data = prepare_data(chosen_data)
-# X = change_frame(X_data)
-# print(X)
-# print(np.array(X).shape)
-# print(np.array(Q_data).shape)
-#X = np.squeeze(X, axis = -1)
-#print(X)
-            
